@@ -1,0 +1,5 @@
+su -  (toor)
+hostnamectl set-hostname br-cli.au-team.irpo
+mcedit /etc/sysconfig/network (HOSTNAME=br-cli.au-team.irpo)
+exec bash
+

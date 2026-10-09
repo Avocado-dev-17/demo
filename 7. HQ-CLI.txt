@@ -1,0 +1,4 @@
+su -  (toor)
+hostnamectl set-hostname hq-cli.au-team.irpo
+mcedit /etc/sysconfig/network (HOSTNAME=hq-cli.au-team.irpo)
+exec bash
