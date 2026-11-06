@@ -1,0 +1,50 @@
+hostnamectl set-hostname hq-srv.au-team.irpo
+mcedit /etc/sysconfig/network (Заменить HOSTNAME=hq-srv.au-team.irpo)
+
+echo "10.10.100.2/27" > /etc/net/ifaces/ens3/ipv4address
+echo "default via 10.10.100.1" > /etc/net/ifaces/ens3/ipv4route
+echo "nameserver 10.10.100.2 77.88.8.8" > /etc/net/ifaces/ens3/resolv.conf
+systemctl restart network
+
+Отредактировать строки в:
+mcedit /etc/bind/options.conf
+listen-on { 127.0.0.1; 10.10.100.2; };    (Добавить второй IP)
+
+forward only;    (Убрать // в начале строки)
+forwarders { 77.88.8.8; };    (Убрать // и добавить IP)
+
+allow-query { any; };    (Убрать // и поменять на any)
+
+
+Отредактировать строки:
+mcedit /etc/bind/zone/10.10.in-addr.arpa
+au-team.irpo. root.au-team.irpo. (    (Поставить точку после au-team.irpo и заменить irto на irpo в конце)
+
+mcedit /etc/bind/zone/16.172.in-addr.arpa
+au-team.irpo. root.au-team.irpo. (    (Поставить точку после au-team.irpo и заменить irto на irpo в конце)
+
+
+Отредактировать строки:
+mcedit /etc/bind/zone/au-team.irpo.zone
+добавить после hq-srv.au-team.irpo. на следующую строку:
+hq-srv     IN  A    10.10.100.2
+
+Изменить:
+web  IN  A  172.16.2.1
+docker  IN  A  172.16.1.1
+
+
+systemctl enable bind.service
+systemctl restart bind.service
+echo "Banner /etc/openssh/banner" >> /etc/openssh/sshd_config
+echo "Port 2027" >> /etc/openssh/sshd_config
+echo "Authorized access only" > /etc/openssh/banner
+systemctl restart sshd
+
+
+User:
+usermod -u 2027 sshuser
+echo "sshuser:P@ssw0rd" | chpasswd
+echo "sshuser ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/sshuser
+chmod 440 /etc/sudoers.d/sshuser
+id sshuser
